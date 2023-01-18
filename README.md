@@ -2,66 +2,11 @@
 
 > Broadcast chat between Minecraft servers or even discord server
 
-See [here](https://github.com/TISUnion/ChatBridge/tree/v1) for chatbridge v1. **NOT compatible with Chatbridge v1**
+This is a fork of [TIS Union's ChatBridge](https://github.com/TISUnion/ChatBridge), which adds some potentially useful features.
 
-```mermaid
-flowchart LR
-    subgraph Minecraft Host
-    mcdr1("ChatBridge Client (MCDR plugin)")<--MCDR-->smp[Minecraft Surival Server]
-    mcdr2("ChatBridge Client (MCDR plugin)")<--MCDR-->cmp[Minecraft Creative Server]
-    mcdr3("ChatBridge Client (MCDR plugin)")<--MCDR-->smpc[Minecraft Mirror Server]
-    online("ChatBridge Online Command Client")<--RCON-->bc[Bungeecord Server]
-    end
-    
-    server(["ChatBridge Server"])
-    server<-->mcdr1 & mcdr2 & mcdr3 & online
-    server<-->cli_client("CLI Client")<-.->user[/User/]
-    server<-->cq_client("ChatBridge CQHttp Client")<-->cqhttp[CQ Http bot]-.-QQ
-    server<-->khl_client("ChatBridge Khl Client")<-->khl["Kaiheila (Kook)"]
-    server<-->discord_client("ChatBridge Discord Client")<-->Discord
-```
+This software is mainly reserved for self-use, so while you can submit an issue or pr, bug-related ones will generally be accepted, while feature-related ones may not.
 
-## Disclaimer
-
-ChatBridge is mainly for custom use of TIS server, especially the bot/command components:
-
-- CQHttp client
-- Discord client
-- Kaiheila client
-- Online command client
-
-Therefore, for these bot and related clients:
-
-- Expect hardcoded constants in codes and lack of document/usage/support
-- PRs for features will not be accepted, issues complaining something don't work will probably be ignored. No after-sales support
-- If you want more features, fork this repository and implement them yourself
-
-But the basic chatbridge components are within the support range, including:
-
-- CLI client
-- CLI server
-- MCDR plugin 
-
-## 免责声明
-
-ChatBridge 是一个为 TIS 服务器定制使用的工具，尤其是 bot/指令相关的组件：
-
-- CQHttp 客户端
-- Discord 客户端
-- Kaiheila 客户端
-- Online 指令客户端
-
-因此，对于这些 bot 及相关的客户端：
-
-- 代码中将会包含若干硬编码常量，缺乏相关的文档/用法等支持
-- 功能方面的 PR 不会被接受，相关的 issue 大概率会被忽略，没有售后
-- 如果你想要更多的功能，建议你去 fork 这个仓库，然后自己实现
-
-但基本的 ChatBridge 组件都是在支持范围内，这包括：
-
-- CLI 客户端
-- CLI 服务端
-- MCDR 插件 
+**Please note that neither I nor TIS Union is responsible for any actions you take with this software and its consequences.**
 
 ## Usage
 
@@ -71,7 +16,7 @@ At launch, if the configure file is missing, chatbridge will automatically gener
 
 ## Requirement
 
-Python 3.6+ required
+Although all versions of python above 3.6 are theoretically supported, I recommend that you use 3.10 or above, as I won't test it on 3.9 and below
 
 Requirements stored in `requirements.txt`, use `pip install -r requirements.txt` to install
 
@@ -196,7 +141,14 @@ Extra configure fields (compared to [CLI client](#cli-client))
     "react_group_id": 12345,  // the target QQ group id
     "client_to_query_stats": "MyClient1",  // it should be a client as an MCDR plugin, with stats_helper plugin installed in the MCDR
     "client_to_query_online": "MyClient2",  // a client described in the following section "Client to respond online command"
-    "server_display_name": "TIS"  // The name of the server, used for display in some places
+    "mc_to_qq_auto": false,  // Whether to forward messages in mc to qq automatically (so you don't need to add "!!qq" prefix).
+    "qq_to_mc_auto": false,  // Whether to forward messages in qq to mc automatically (so you don't need to add "!!mc" prefix).
+    "forward_join_message": true,  // should join messages be forwarded (only works if mc_to_qq_auto == true) 
+    "admin": [],  // qq id of server admins, who can execute commands through the bridge
+    "qq_list": [],  // blacklist/whitelist of qq group members
+    "mc_list": [],  // blacklist/whitelist of minecraft players
+    "qq_whitelist": false,  // Whether the bridge should work in whitelist mode. If true, members not in the qq_list will not be able to use message forwarding.
+    "mc_whitelist": false  // same as above, but for minecraft
 ```
 
 ## Kaiheila bot client
