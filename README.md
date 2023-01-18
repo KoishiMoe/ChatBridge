@@ -108,7 +108,7 @@ Extra configure fields (compared to [CLI client](#cli-client))
 
 `!!online` will send command to `MyClient2` to use rcon to get `glist` command reply in bungeecord server
 
-## Client as a CoolqHttp client
+## Client as a cqhttp client
 
 ```
 python ChatBridge.pyz cqhttp_bot
@@ -121,14 +121,21 @@ websocket>=0.2.1
 websocket-client>=1.2.1
 ```
 
-Needs any CoolQ Http protocol provider to work. e.g. [go-cqhttp](https://github.com/Mrs4s/go-cqhttp)
+Needs any cqhttp protocol provider to work. e.g. [go-cqhttp](https://github.com/Mrs4s/go-cqhttp)
 
-Due to lack of channel division in QQ group (not like discord), to prevent message spam player needs to use special command to let the bot recognize the message:
+Due to lack of channel division in QQ group (not like discord), to prevent message spam, by default player needs to use special command to let the bot recognize the message:
 
 - In MC (othe client) use `!!qq <message>` to send message to QQ
 - In QQ use `!!mc <message>` to send message
 
 Type `!!help` in QQ for more help
+
+To execute commands in Minecraft server (you need to be set as admin in the config file):
+
+- `#/ <client name> <command>` to execute a vanilla command
+- `#! <client name> <command>` to execute an MCDR command
+
+Specially you can kill a carpet fake player with `!!killbot <client name> <bot name>`. This doesn't require admin privilege
 
 Extra configure fields (compared to [CLI client](#cli-client))
 
