@@ -10,3 +10,4 @@ class CqHttpConfig(ClientConfig):
 	client_to_query_online: str = 'MyClient2'
 	mc_to_qq_auto: bool = False
 	qq_to_mc_auto: bool = False
+	forward_join_message: bool = True

@@ -1,5 +1,6 @@
 import html
 import json
+import re
 from typing import Optional
 
 import websocket
@@ -131,11 +132,13 @@ class CQBot(websocket.WebSocketApp):
 
 class CqHttpChatBridgeClient(ChatBridgeClient):
     mc_to_qq_auto: bool = False
+    forward_join_message: bool = True
 
     @classmethod
     def create(cls, config: CqHttpConfig):
         self = cls(config.aes_key, config.client_info, server_address=config.server_address)
         self.mc_to_qq_auto = config.mc_to_qq_auto
+        self.forward_join_message = config.forward_join_message
         return self
 
     def on_chat(self, sender: str, payload: ChatPayload):
@@ -144,6 +147,10 @@ class CqHttpChatBridgeClient(ChatBridgeClient):
             return
         try:
             if self.mc_to_qq_auto and not payload.message.strip().startswith('!!'):
+                if (not self.forward_join_message) \
+                        and (re.match(r'.+ joined .+', payload.message.strip())
+                             or re.match(r'.+ left .+', payload.message.strip())):
+                    return
                 self.logger.info('Message forward triggered')
                 cq_bot.send_message(sender, payload.formatted_str())
             else:
