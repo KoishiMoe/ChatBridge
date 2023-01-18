@@ -5,6 +5,7 @@ from mcdreforged.api.all import *
 from chatbridge.core.client import ChatBridgeClient
 from chatbridge.core.network.protocol import ChatPayload, CommandPayload
 from chatbridge.impl.mcdr.config import MCDRClientConfig
+from chatbridge.impl.mcdr.protocol import RemoteCommandResult
 from chatbridge.impl.tis.protocol import StatsQueryResult
 
 
@@ -72,9 +73,14 @@ class ChatBridgeMCDRClient(ChatBridgeClient):
 
 		if payload.params.get("IsQQ"):
 			if payload.params.get("Type") == "Vanilla":
-				self.server.execute(command)
+				if self.server.is_server_running():
+					self.server.execute(command)
+					result = RemoteCommandResult(True)
+				else:
+					result = RemoteCommandResult(False)
 			else:
 				self.server.execute_command(command)
+				result = RemoteCommandResult(True)
 
 		if result is not None:
 			self.reply_command(sender, payload, result)

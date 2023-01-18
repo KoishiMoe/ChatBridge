@@ -10,6 +10,7 @@ from chatbridge.core.client import ChatBridgeClient
 from chatbridge.core.network.protocol import ChatPayload, CommandPayload
 from chatbridge.impl import utils
 from chatbridge.impl.cqhttp.config import CqHttpConfig
+from chatbridge.impl.mcdr.protocol import RemoteCommandResult
 from chatbridge.impl.tis.protocol import StatsQueryResult, OnlineQueryResult
 
 ConfigFile = 'ChatBridge_CQHttp.json'
@@ -69,12 +70,20 @@ class CQBot(websocket.WebSocketApp):
                         cmd = data['raw_message'][1:].strip().split(maxsplit=2)
                         if len(cmd) > 2:
                             if cmd[0] == "/":
-                                chatClient.send_command(cmd[1], cmd[2], params={"IsQQ": True, "Type": "Vanilla"})
-                                self.send_text("Command executed")
+                                if chatClient.is_online():
+                                    self.logger.info("Vanilla command triggered")
+                                    chatClient.send_command(cmd[1], cmd[2], params={"IsQQ": True, "Type": "Vanilla"})
+                                    self.logger.info(f"Sent command {cmd[2]} to client {cmd[1]}")
+                                else:
+                                    self.send_text("客户端离线")
                                 return
                             elif cmd[0] == "!":
-                                chatClient.send_command(cmd[1], cmd[2], params={"IsQQ": True, "Type": "MCDR"})
-                                self.send_text("Command executed")
+                                if chatClient.is_online():
+                                    self.logger.info("MCDR command triggered")
+                                    chatClient.send_command(cmd[1], cmd[2], params={"IsQQ": True, "Type": "MCDR"})
+                                    self.logger.info(f"Sent command {cmd[2]} to client {cmd[1]}")
+                                else:
+                                    self.send_text("客户端离线")
                                 return
 
                     if len(args) == 1:
@@ -227,6 +236,9 @@ class CqHttpChatBridgeClient(ChatBridgeClient):
         elif payload.command == '!!online':
             result = OnlineQueryResult.deserialize(payload.result)
             cq_bot.send_text('====== 玩家列表 ======\n{}'.format('\n'.join(result.data)))
+        elif payload.params.get("IsQQ"):
+            result = RemoteCommandResult.deserialize(payload.result)
+            cq_bot.send_text("命令已执行" if result.success else "Minecraft服务器未在运行，请稍后再试")
 
 
 def main():
