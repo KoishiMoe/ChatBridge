@@ -120,6 +120,15 @@ class CQBot(websocket.WebSocketApp):
                             sender = data['sender']['nickname']
                         text = html.unescape(data['raw_message']) if self.config.qq_to_mc_auto \
                             else html.unescape(data['raw_message'].split(' ', 1)[1])
+                        # copied from
+                        # https://github.com/nonebot/adapter-onebot/blob/master/nonebot/adapters/onebot/v11/message.py#L310
+                        text = re.sub(
+                            r"\[CQ:(?P<type>[a-zA-Z0-9-_.]+)"
+                            r"(?P<params>"
+                            r"(?:,[a-zA-Z0-9-_.]+=[^,\]]*)*"
+                            r"),?\]",
+                            "[不支持的消息格式]", text
+                        )
                         chatClient.send_chat(text, sender)
 
         except:
