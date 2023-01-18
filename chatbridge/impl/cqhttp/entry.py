@@ -1,7 +1,7 @@
 import html
 import json
 import re
-from typing import Optional
+from typing import Optional, List
 
 import websocket
 
@@ -56,6 +56,13 @@ class CQBot(websocket.WebSocketApp):
                 if data['anonymous'] is None and data['group_id'] == self.config.react_group_id:
                     self.logger.info('QQ chat message: {}'.format(data))
                     args = data['raw_message'].split(' ')
+
+                    if self.config.qq_whitelist:
+                        if int(data['user_id']) not in self.config.qq_list:
+                            return
+                    else:
+                        if int(data['user_id']) in self.config.qq_list:
+                            return
 
                     if data.get('raw_message', '').strip().startswith("#") \
                             and int(data['user_id']) in self.config.admin:
@@ -150,12 +157,16 @@ class CQBot(websocket.WebSocketApp):
 class CqHttpChatBridgeClient(ChatBridgeClient):
     mc_to_qq_auto: bool = False
     forward_join_message: bool = True
+    mc_whitelist: bool = False
+    mc_list: List[str] = []
 
     @classmethod
     def create(cls, config: CqHttpConfig):
         self = cls(config.aes_key, config.client_info, server_address=config.server_address)
         self.mc_to_qq_auto = config.mc_to_qq_auto
         self.forward_join_message = config.forward_join_message
+        self.mc_list = config.mc_list
+        self.mc_whitelist = config.mc_whitelist
         return self
 
     def on_chat(self, sender: str, payload: ChatPayload):
@@ -163,6 +174,13 @@ class CqHttpChatBridgeClient(ChatBridgeClient):
         if cq_bot is None:
             return
         try:
+            if self.mc_whitelist:
+                if sender not in self.mc_list:
+                    return
+            else:
+                if sender in self.mc_list:
+                    return
+
             if self.mc_to_qq_auto and not payload.message.strip().startswith('!!'):
                 if (not self.forward_join_message) \
                         and (re.match(r'.+ joined .+', payload.message.strip())

@@ -16,4 +16,5 @@ class CqHttpConfig(ClientConfig):
 	admin: List[int] = []
 	qq_list: list[int] = []
 	mc_list: list[str] = []
-	whitelist: bool = False
+	qq_whitelist: bool = False
+	mc_whitelist: bool = False
