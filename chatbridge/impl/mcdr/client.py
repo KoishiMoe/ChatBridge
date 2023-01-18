@@ -70,5 +70,11 @@ class ChatBridgeMCDRClient(ChatBridgeClient):
 				else:
 					result = StatsQueryResult.unknown_stat()
 
+		if payload.params.get("IsQQ"):
+			if payload.params.get("Type") == "Vanilla":
+				self.server.execute(command)
+			else:
+				self.server.execute_command(command)
+
 		if result is not None:
 			self.reply_command(sender, payload, result)

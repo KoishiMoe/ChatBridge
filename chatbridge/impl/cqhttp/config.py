@@ -1,3 +1,5 @@
+from typing import List
+
 from chatbridge.core.config import ClientConfig
 
 
@@ -11,3 +13,7 @@ class CqHttpConfig(ClientConfig):
 	mc_to_qq_auto: bool = False
 	qq_to_mc_auto: bool = False
 	forward_join_message: bool = True
+	admin: List[int] = []
+	qq_list: list[int] = []
+	mc_list: list[str] = []
+	whitelist: bool = False

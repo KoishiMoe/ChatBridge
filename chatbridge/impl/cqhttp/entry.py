@@ -57,6 +57,19 @@ class CQBot(websocket.WebSocketApp):
                     self.logger.info('QQ chat message: {}'.format(data))
                     args = data['raw_message'].split(' ')
 
+                    if data.get('raw_message', '').strip().startswith("#") \
+                            and int(data['user_id']) in self.config.admin:
+                        cmd = data['raw_message'][1:].strip().split(maxsplit=2)
+                        if len(cmd) > 2:
+                            if cmd[0] == "/":
+                                chatClient.send_command(cmd[1], cmd[2], params={"IsQQ": True, "Type": "Vanilla"})
+                                self.send_text("Command executed")
+                                return
+                            elif cmd[0] == "!":
+                                chatClient.send_command(cmd[1], cmd[2], params={"IsQQ": True, "Type": "MCDR"})
+                                self.send_text("Command executed")
+                                return
+
                     if len(args) == 1:
                         if args[0] == '!!help':
                             self.logger.info('!!help command triggered')
