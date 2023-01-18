@@ -8,3 +8,5 @@ class CqHttpConfig(ClientConfig):
 	react_group_id: int = 12345
 	client_to_query_stats: str = 'MyClient1'
 	client_to_query_online: str = 'MyClient2'
+	mc_to_qq_auto: bool = False
+	qq_to_mc_auto: bool = False
