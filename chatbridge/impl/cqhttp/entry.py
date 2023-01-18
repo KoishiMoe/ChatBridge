@@ -57,18 +57,16 @@ class CQBot(websocket.WebSocketApp):
                     self.logger.info('QQ chat message: {}'.format(data))
                     args = data['raw_message'].split(' ')
 
-                    reacted = False
-
                     if len(args) == 1:
                         if args[0] == '!!help':
                             self.logger.info('!!help command triggered')
                             self.send_text(CQHelpMessage)
-                            reacted = True
+                            return
 
                         elif args[0] == '!!ping':
                             self.logger.info('!!ping command triggered')
                             self.send_text('pong!!')
-                            reacted = True
+                            return
 
                         elif args[0] == '!!online':
                             self.logger.info('!!online command triggered')
@@ -79,7 +77,7 @@ class CQBot(websocket.WebSocketApp):
                                 chatClient.send_command(client, command)
                             else:
                                 self.send_text('ChatBridge 客户端离线')
-                            reacted = True
+                            return
 
                     if len(args) >= 1 and args[0] == '!!stats':
                         self.logger.info('!!stats command triggered')
@@ -93,9 +91,9 @@ class CQBot(websocket.WebSocketApp):
                             chatClient.send_command(client, command)
                         else:
                             self.send_text('ChatBridge 客户端离线')
-                        reacted = True
+                        return
 
-                    if (self.config.qq_to_mc_auto and not reacted) or (len(args) >= 2 and args[0] == '!!mc'):
+                    if self.config.qq_to_mc_auto or (len(args) >= 2 and args[0] == '!!mc'):
                         self.logger.info('message forward triggered')
                         sender = data['sender']['card']
                         if len(sender) == 0:
@@ -103,7 +101,6 @@ class CQBot(websocket.WebSocketApp):
                         text = html.unescape(data['raw_message']) if self.config.qq_to_mc_auto \
                             else html.unescape(data['raw_message'].split(' ', 1)[1])
                         chatClient.send_chat(text, sender)
-                        reacted = True
 
         except:
             self.logger.exception('Error in on_message()')
