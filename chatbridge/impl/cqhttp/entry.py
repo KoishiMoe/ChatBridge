@@ -75,7 +75,7 @@ class CQBot(websocket.WebSocketApp):
                                     chatClient.send_command(cmd[1], cmd[2], params={"IsQQ": True, "Type": "Vanilla"})
                                     self.logger.info(f"Sent command {cmd[2]} to client {cmd[1]}")
                                 else:
-                                    self.send_text("客户端离线")
+                                    self.send_text("ChatBridge 客户端离线")
                                 return
                             elif cmd[0] == "!":
                                 if chatClient.is_online():
@@ -83,7 +83,7 @@ class CQBot(websocket.WebSocketApp):
                                     chatClient.send_command(cmd[1], cmd[2], params={"IsQQ": True, "Type": "MCDR"})
                                     self.logger.info(f"Sent command {cmd[2]} to client {cmd[1]}")
                                 else:
-                                    self.send_text("客户端离线")
+                                    self.send_text("ChatBridge 客户端离线")
                                 return
 
                     if len(args) == 1:
@@ -118,6 +118,16 @@ class CQBot(websocket.WebSocketApp):
                             client = self.config.client_to_query_stats
                             self.logger.info('Sending command "{}" to client {}'.format(command, client))
                             chatClient.send_command(client, command)
+                        else:
+                            self.send_text('ChatBridge 客户端离线')
+                        return
+
+                    if len(args) == 3 and args[0] == '!!killbot':
+                        self.logger.info('!!killbot command triggered')
+                        if chatClient.is_online():
+                            command = f'player {args[2]} kill'
+                            self.logger.info(f'Sending command {command} to client {args[1]}')
+                            chatClient.send_command(args[1], command, params={"IsQQ": True, "Type": "Vanilla"})
                         else:
                             self.send_text('ChatBridge 客户端离线')
                         return
