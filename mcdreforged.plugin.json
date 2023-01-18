@@ -1,15 +1,16 @@
 {
     "id": "chatbridge",
-    "version": "2.3.0",
+    "version": "2.4.0",
     "name": "ChatBridge v2 for MCDR",
     "description": {
 		"en_us": "Broadcast chats between Minecraft servers and more",
 		"zh_cn": "跨服聊天"
     },
     "author": [
-        "Fallen_Breath"
+        "Fallen_Breath",
+        "KoishiMoe"
     ],
-    "link": "https://github.com/TISUnion/ChatBridge",
+    "link": "https://github.com/KoishiMoe/ChatBridge",
     "dependencies": {
         "mcdreforged": ">=2.2.0-"
     },
