@@ -21,3 +21,5 @@ class CqHttpConfig(ClientConfig):
 	limiter: bool = False
 	limiter_rate: float = 2
 	limiter_capacity: int = 5
+	qq_max_length: int = 0
+	mc_max_length: int = 0

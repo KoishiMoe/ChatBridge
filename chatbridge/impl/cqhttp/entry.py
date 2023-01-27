@@ -156,6 +156,11 @@ class CQBot(websocket.WebSocketApp):
                             r"),?\]",
                             "[不支持的消息格式]", text
                         )
+
+                        if 0 < self.config.qq_max_length < len(text):
+                            self.logger.warning('Message not forwarded because it exceeded the length limit')
+                            return
+
                         chatClient.send_chat(text, sender)
 
         except:
@@ -196,6 +201,7 @@ class CqHttpChatBridgeClient(ChatBridgeClient):
     mc_whitelist: bool = False
     mc_list: List[str] = []
     limiter: bool = False
+    max_length: int = 0
 
     @classmethod
     def create(cls, config: CqHttpConfig):
@@ -205,6 +211,7 @@ class CqHttpChatBridgeClient(ChatBridgeClient):
         self.mc_list = config.mc_list
         self.mc_whitelist = config.mc_whitelist
         self.limiter = config.limiter
+        self.max_length = config.mc_max_length
         return self
 
     def on_chat(self, sender: str, payload: ChatPayload):
@@ -228,7 +235,12 @@ class CqHttpChatBridgeClient(ChatBridgeClient):
                     self.logger.warning('Message not forwarded due to rate limiting')
                     return
                 self.logger.info('Message forward triggered')
-                cq_bot.send_message(sender, payload.formatted_str())
+
+                text = payload.formatted_str()
+                if 0 < self.max_length < len(text):
+                    self.logger.warning('Message not forwarded because it exceeded the length limit')
+                    return
+                cq_bot.send_message(sender, text)
             else:
                 try:
                     prefix, message = payload.message.split(' ', 1)
@@ -236,9 +248,17 @@ class CqHttpChatBridgeClient(ChatBridgeClient):
                     pass
                 else:
                     if prefix == '!!qq':
+                        if self.limiter and not limiter.consume('mc'):
+                            self.logger.warning('Message not forwarded due to rate limiting')
+                            return
                         self.logger.info('Triggered command, sending message {} to qq'.format(payload.formatted_str()))
                         payload.message = message
-                        cq_bot.send_message(sender, payload.formatted_str())
+
+                        text = payload.formatted_str()
+                        if 0 < self.max_length < len(text):
+                            self.logger.warning('Message not forwarded because it exceeded the length limit')
+                            return
+                        cq_bot.send_message(sender, text)
         except:
             self.logger.exception('Error in on_message()')
 
