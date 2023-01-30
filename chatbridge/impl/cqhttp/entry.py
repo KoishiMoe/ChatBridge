@@ -220,10 +220,10 @@ class CqHttpChatBridgeClient(ChatBridgeClient):
             return
         try:
             if self.mc_whitelist:
-                if sender not in self.mc_list:
+                if payload.author not in self.mc_list:
                     return
             else:
-                if sender in self.mc_list:
+                if payload.author in self.mc_list:
                     return
 
             if self.mc_to_qq_auto and not payload.message.strip().startswith('!!'):
