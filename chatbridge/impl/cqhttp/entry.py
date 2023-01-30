@@ -1,7 +1,7 @@
 import html
 import json
 import re
-from typing import Optional, List
+from typing import Optional
 
 import websocket
 from token_bucket import MemoryStorage, Limiter
@@ -19,7 +19,8 @@ cq_bot: Optional['CQBot'] = None
 chatClient: Optional['CqHttpChatBridgeClient'] = None
 
 rate_storage: Optional['MemoryStorage'] = None
-limiter: Optional['Limiter'] = None
+qq_limiter: Optional['Limiter'] = None
+mc_limiter: Optional['Limiter'] = None
 
 CQHelpMessage = '''
 !!help: 显示本条帮助信息
@@ -137,8 +138,8 @@ class CQBot(websocket.WebSocketApp):
                         return
 
                     if self.config.qq_to_mc_auto or (len(args) >= 2 and args[0] == '!!mc'):
-                        if int(data['user_id']) not in self.config.admin and self.config.limiter:
-                            if not limiter.consume('qq'):
+                        if int(data['user_id']) not in self.config.admin and self.config.qq_limiter:
+                            if not qq_limiter.consume('qq'):
                                 self.logger.warning('Message not forwarded due to rate limiting')
                                 return
                         self.logger.info('Message forward triggered')
@@ -153,7 +154,7 @@ class CQBot(websocket.WebSocketApp):
                             r"\[CQ:(?P<type>[a-zA-Z0-9-_.]+)"
                             r"(?P<params>"
                             r"(?:,[a-zA-Z0-9-_.]+=[^,\]]*)*"
-                            r"),?\]",
+                            r"),?]",
                             "[不支持的消息格式]", text
                         )
 
@@ -196,22 +197,12 @@ class CQBot(websocket.WebSocketApp):
 
 
 class CqHttpChatBridgeClient(ChatBridgeClient):
-    mc_to_qq_auto: bool = False
-    forward_join_message: bool = True
-    mc_whitelist: bool = False
-    mc_list: List[str] = []
-    limiter: bool = False
-    max_length: int = 0
+    config: Optional['CqHttpConfig'] = None
 
     @classmethod
     def create(cls, config: CqHttpConfig):
         self = cls(config.aes_key, config.client_info, server_address=config.server_address)
-        self.mc_to_qq_auto = config.mc_to_qq_auto
-        self.forward_join_message = config.forward_join_message
-        self.mc_list = config.mc_list
-        self.mc_whitelist = config.mc_whitelist
-        self.limiter = config.limiter
-        self.max_length = config.mc_max_length
+        self.config = config
         return self
 
     def on_chat(self, sender: str, payload: ChatPayload):
@@ -219,25 +210,25 @@ class CqHttpChatBridgeClient(ChatBridgeClient):
         if cq_bot is None:
             return
         try:
-            if self.mc_whitelist:
-                if payload.author not in self.mc_list:
+            if self.config.mc_whitelist:
+                if payload.author not in self.config.mc_list:
                     return
             else:
-                if payload.author in self.mc_list:
+                if payload.author in self.config.mc_list:
                     return
 
-            if self.mc_to_qq_auto and not payload.message.strip().startswith('!!'):
-                if (not self.forward_join_message) \
+            if self.config.mc_to_qq_auto and not payload.message.strip().startswith('!!'):
+                if (not self.config.forward_join_message) \
                         and (re.match(r'.+ joined .+', payload.message.strip())
                              or re.match(r'.+ left .+', payload.message.strip())):
                     return
-                if self.limiter and not limiter.consume('mc'):
+                if self.config.mc_limiter and not mc_limiter.consume('mc'):
                     self.logger.warning('Message not forwarded due to rate limiting')
                     return
                 self.logger.info('Message forward triggered')
 
                 text = payload.formatted_str()
-                if 0 < self.max_length < len(text):
+                if 0 < self.config.mc_max_length < len(text):
                     self.logger.warning('Message not forwarded because it exceeded the length limit')
                     return
                 cq_bot.send_message(sender, text)
@@ -248,14 +239,14 @@ class CqHttpChatBridgeClient(ChatBridgeClient):
                     pass
                 else:
                     if prefix == '!!qq':
-                        if self.limiter and not limiter.consume('mc'):
+                        if self.config.mc_limiter and not mc_limiter.consume('mc'):
                             self.logger.warning('Message not forwarded due to rate limiting')
                             return
                         self.logger.info('Triggered command, sending message {} to qq'.format(payload.formatted_str()))
                         payload.message = message
 
                         text = payload.formatted_str()
-                        if 0 < self.max_length < len(text):
+                        if 0 < self.config.mc_max_length < len(text):
                             self.logger.warning('Message not forwarded because it exceeded the length limit')
                             return
                         cq_bot.send_message(sender, text)
@@ -285,10 +276,11 @@ class CqHttpChatBridgeClient(ChatBridgeClient):
 
 
 def main():
-    global chatClient, cq_bot, rate_storage, limiter
+    global chatClient, cq_bot, rate_storage, qq_limiter, mc_limiter
     config = utils.load_config(ConfigFile, CqHttpConfig)
     rate_storage = MemoryStorage()
-    limiter = Limiter(rate=config.limiter_rate, capacity=config.limiter_capacity, storage=rate_storage)
+    qq_limiter = Limiter(rate=config.qq_limiter_rate, capacity=config.qq_limiter_capacity, storage=rate_storage)
+    mc_limiter = Limiter(rate=config.mc_limiter_rate, capacity=config.mc_limiter_capacity, storage=rate_storage)
     chatClient = CqHttpChatBridgeClient.create(config)
     utils.start_guardian(chatClient)
     print('Starting CQ Bot')

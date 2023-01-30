@@ -18,8 +18,11 @@ class CqHttpConfig(ClientConfig):
 	mc_list: list[str] = []
 	qq_whitelist: bool = False
 	mc_whitelist: bool = False
-	limiter: bool = False
-	limiter_rate: float = 2
-	limiter_capacity: int = 5
+	qq_limiter: bool = False
+	qq_limiter_rate: float = 2
+	qq_limiter_capacity: int = 10
 	qq_max_length: int = 0
+	mc_limiter: bool = False
+	mc_limiter_rate: float = 2
+	mc_limiter_capacity: int = 5
 	mc_max_length: int = 0
