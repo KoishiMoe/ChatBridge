@@ -219,8 +219,7 @@ class CqHttpChatBridgeClient(ChatBridgeClient):
 
             if self.config.mc_to_qq_auto and not payload.message.strip().startswith('!!'):
                 if (not self.config.forward_join_message) \
-                        and (re.match(r'.+ joined .+', payload.message.strip())
-                             or re.match(r'.+ left .+', payload.message.strip())):
+                        and (re.match(r'.+ (joined|left) .+', payload.message.strip())):
                     return
                 if self.config.mc_limiter and not mc_limiter.consume('mc'):
                     self.logger.warning('Message not forwarded due to rate limiting')
