@@ -1,5 +1,3 @@
-import time
-
 from chatbridge.core.client import ChatBridgeClient
 from chatbridge.core.config import ClientConfig
 from chatbridge.core.network.protocol import ChatPayload
@@ -9,30 +7,12 @@ ConfigFile = 'ChatBridge_client.json'
 
 
 class CLIClient(ChatBridgeClient):
-	stopped = False
-
 	def _on_stopped(self):
 		super()._on_stopped()
 		self.logger.info('Disconnected')
-		if not self.stopped:
-			self.logger.info('Reconnecting in 5 seconds...')
-			time.sleep(5)
-			self.restart()
 
 	def on_chat(self, sender: str, payload: ChatPayload):
 		self.logger.info('New message: [{}] {}'.format(sender, payload.formatted_str()))
-
-	def start(self):
-		self.stopped = False
-		super().start()
-
-	def stop(self):
-		super().stop()
-		self.stopped = True
-
-	def restart(self):
-		self.stopped = False
-		super().restart()
 
 	def console_loop(self):
 		while True:
