@@ -14,7 +14,7 @@ class CLIClient(ChatBridgeClient):
 	def _on_stopped(self):
 		super()._on_stopped()
 		self.logger.info('Disconnected')
-		while not (self.stopped and self._is_connected()):
+		if not self.stopped:
 			self.logger.info('Reconnecting in 5 seconds...')
 			time.sleep(5)
 			self.restart()
