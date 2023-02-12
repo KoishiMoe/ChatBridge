@@ -1,3 +1,6 @@
+import os
+import time
+
 from chatbridge.core.client import ChatBridgeClient
 from chatbridge.core.config import ClientConfig
 from chatbridge.core.network.protocol import ChatPayload
@@ -7,9 +10,35 @@ ConfigFile = 'ChatBridge_client.json'
 
 
 class CLIClient(ChatBridgeClient):
+	stopped = False
+
 	def _on_stopped(self):
 		super()._on_stopped()
+		if not self.stopped:
+			self.logger.error('Client stopped unexpectedly')
+			os._exit(1)  # Warning: this is a dirty hack
+			# seems that they think the client should be restarted by the user
+			# (on disconnect, the client thread is still alive and the client state is not considered as stopped,
+			# so we can't use restart() here)
+			# I can change this behavior by modifying many files,
+			# but I think let systemd (or other service manager) to fuck it is better
 		self.logger.info('Disconnected')
+
+	def start(self):
+		self.stopped = False
+		super().start()
+		while not self._is_connected():
+			self.logger.info('Waiting for 10 seconds before reconnecting...')
+			time.sleep(10)
+			super().start()
+
+	def stop(self):
+		self.stopped = True
+		super().stop()
+
+	def restart(self):
+		self.stopped = False
+		super().restart()
 
 	def on_chat(self, sender: str, payload: ChatPayload):
 		self.logger.info('New message: [{}] {}'.format(sender, payload.formatted_str()))
