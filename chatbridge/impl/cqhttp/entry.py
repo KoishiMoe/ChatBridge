@@ -70,25 +70,56 @@ class CQBot(websocket.WebSocketApp):
                         if int(data['user_id']) in self.config.qq_list:
                             return
 
-                    if data.get('raw_message', '').strip().startswith("#") \
-                            and int(data['user_id']) in self.config.admin:
+                    if data.get('raw_message', '').strip().startswith("#"):
                         cmd = data['raw_message'][1:].strip().split(maxsplit=2)
                         if len(cmd) > 2:
-                            if cmd[0] == "/":
+                            if int(data['user_id']) in self.config.admin:
+                                if cmd[0] == "/":
+                                    if chatClient.is_online():
+                                        self.logger.info("Vanilla command triggered")
+                                        chatClient.send_command(cmd[1], cmd[2], params={"IsQQ": True, "Type": "Vanilla"})
+                                        self.logger.info(f"Sent command {cmd[2]} to client {cmd[1]}")
+                                    else:
+                                        self.send_text("ChatBridge 客户端离线")
+                                    return
+                                elif cmd[0] == "!":
+                                    if chatClient.is_online():
+                                        self.logger.info("MCDR command triggered")
+                                        chatClient.send_command(cmd[1], cmd[2], params={"IsQQ": True, "Type": "MCDR"})
+                                        self.logger.info(f"Sent command {cmd[2]} to client {cmd[1]}")
+                                    else:
+                                        self.send_text("ChatBridge 客户端离线")
+                                    return
+                            elif cmd[0].lower() in ["离线", "offline"] and \
+                                (int(data['user_id']) in self.config.admin or self.config.allow_easyauth_offline_reg_for_everyone):
+                                u_name = cmd[2].strip()
+                                if not utils.is_valid_minecraft_username(u_name):
+                                    self.send_text("非法的用户名！")
+                                    return
                                 if chatClient.is_online():
-                                    self.logger.info("Vanilla command triggered")
-                                    chatClient.send_command(cmd[1], cmd[2], params={"IsQQ": True, "Type": "Vanilla"})
-                                    self.logger.info(f"Sent command {cmd[2]} to client {cmd[1]}")
+                                    cmd_to_send = f"auth addToForcedOffline {u_name}"
+                                    self.logger.info("Easyauth Offline register triggered")
+                                    chatClient.send_command(cmd[1], cmd_to_send, params={"IsQQ": True, "Type": "Vanilla"})
+                                    self.logger.info(f"Sent command {cmd_to_send} to client {cmd[1]}")
                                 else:
                                     self.send_text("ChatBridge 客户端离线")
                                 return
-                            elif cmd[0] == "!":
+                            elif cmd[0].lower() in ["白名单", "whitelist"] and \
+                                (int(data['user_id']) in self.config.admin or self.config.allow_whitelist_for_everyone):
+                                u_name = cmd[2].strip()
+                                if not utils.is_valid_minecraft_username(u_name):
+                                    self.send_text("非法的用户名！")
+                                    return
                                 if chatClient.is_online():
-                                    self.logger.info("MCDR command triggered")
-                                    chatClient.send_command(cmd[1], cmd[2], params={"IsQQ": True, "Type": "MCDR"})
-                                    self.logger.info(f"Sent command {cmd[2]} to client {cmd[1]}")
+                                    cmd_to_send = f"whitelist add {u_name}"
+                                    self.logger.info("Whitelist triggered")
+                                    chatClient.send_command(cmd[1], cmd_to_send, params={"IsQQ": True, "Type": "Vanilla"})
+                                    self.logger.info(f"Sent command {cmd_to_send} to client {cmd[1]}")
                                 else:
                                     self.send_text("ChatBridge 客户端离线")
+                                return
+                            else:
+                                self.send_text("命令执行失败：格式错误或权限不足")
                                 return
 
                     if len(args) == 1:

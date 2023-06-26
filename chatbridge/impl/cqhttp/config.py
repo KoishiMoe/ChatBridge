@@ -26,3 +26,5 @@ class CqHttpConfig(ClientConfig):
 	mc_limiter_rate: float = 2
 	mc_limiter_capacity: int = 5
 	mc_max_length: int = 0
+	allow_easyauth_offline_reg_for_everyone: bool = False
+	allow_whitelist_for_everyone: bool = False

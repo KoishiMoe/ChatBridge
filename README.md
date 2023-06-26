@@ -135,7 +135,19 @@ To execute commands in Minecraft server (you need to be set as admin in the conf
 - `#/ <client name> <command>` to execute a vanilla command
 - `#! <client name> <command>` to execute an MCDR command
 
-Specially you can kill a carpet fake player with `!!killbot <client name> <bot name>`. This doesn't require admin privilege
+Additionally, if your server uses [EasyAuth](https://github.com/NikitaCartes/EasyAuth/) to allow offline users for an online server, you can use this command to add a force-offline player:
+
+- `#offline <client name> <player name>` or `#离线 <client name> <player name>`
+
+This can be configured with `allow_easyauth_offline_reg_for_everyone` in config file.
+
+If your server uses whitelist, you can use this command to add a player to whitelist:
+
+- `#whitelist <client name> <player name>` or `#白名单 <client name> <player name>`
+
+This can be configured with `allow_whitelist_for_everyone` in config file.
+
+If your server allow carpet fake player, you can kill a carpet fake player with `!!killbot <client name> <bot name>`. This doesn't require admin privilege
 
 Extra configure fields (compared to [CLI client](#cli-client))
 
@@ -155,7 +167,9 @@ Extra configure fields (compared to [CLI client](#cli-client))
     "qq_list": [],  // blacklist/whitelist of qq group members
     "mc_list": [],  // blacklist/whitelist of minecraft players
     "qq_whitelist": false,  // Whether the bridge should work in whitelist mode. If true, members not in the qq_list will not be able to use message forwarding.
-    "mc_whitelist": false  // same as above, but for minecraft
+    "mc_whitelist": false,  // same as above, but for minecraft
+    "allow_easyauth_offline_reg_for_everyone": false,  // Allow everyone in the group to add EasyAuth force-offline player
+    "allow_whitelist_for_everyone": false  // Allow everyone in the group to add a player to whitelist
 ```
 
 ## Kaiheila bot client
